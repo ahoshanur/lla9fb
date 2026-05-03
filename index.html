@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLA 9th FB ID List</title>
+<title>Precedenters LLA 9th</title>
 
-<!-- Google Font -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
@@ -31,7 +30,7 @@ body {
     font-size: 18px;
 }
 
-/* Search Box */
+/* Search */
 .search-box {
     margin-top: 10px;
 }
@@ -42,7 +41,6 @@ body {
     padding: 10px;
     border-radius: 8px;
     border: 1px solid #ccc;
-    font-size: 14px;
 }
 
 /* Cards */
@@ -78,13 +76,12 @@ body {
 
 /* Tag */
 .tag {
-    display: inline-block;
     background: #2ecc71;
     color: white;
     font-size: 10px;
     padding: 2px 6px;
     border-radius: 5px;
-    margin-left: 5px;
+    margin-left: 6px;
 }
 
 /* Button */
@@ -95,13 +92,6 @@ body {
     border-radius: 8px;
     text-decoration: none;
     font-size: 12px;
-}
-
-/* Mobile optimization */
-@media (max-width: 500px) {
-    .name {
-        font-size: 14px;
-    }
 }
 </style>
 </head>
@@ -121,17 +111,36 @@ body {
 
 <div class="container" id="list"></div>
 
-<!-- PapaParse -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 
 <script>
 let allData = [];
+
+// Normalize keys (handles Name/name/NAME etc.)
+function normalize(row) {
+    const newRow = {};
+    for (let key in row) {
+        newRow[key.trim().toLowerCase()] = row[key];
+    }
+    return newRow;
+}
 
 function render(data) {
     const list = document.getElementById("list");
     list.innerHTML = "";
 
     data.forEach(row => {
+
+        row = normalize(row);
+
+        const nameVal = row.name || "";
+        const districtVal = row.district || "";
+        const fbVal = row.facebook || row.fb || "";
+        const tagVal = row.tag || "";
+
+        // Skip completely empty rows
+        if (!nameVal && !districtVal && !fbVal) return;
+
         const card = document.createElement("div");
         card.className = "card";
 
@@ -140,27 +149,26 @@ function render(data) {
 
         const name = document.createElement("div");
         name.className = "name";
-
-        name.innerHTML = row.Name;
+        name.innerHTML = nameVal || "No Name";
 
         // Tag
-        if (row.Tag && row.Tag.trim() !== "") {
+        if (tagVal.trim() !== "") {
             const tag = document.createElement("span");
             tag.className = "tag";
-            tag.innerText = row.Tag;
+            tag.innerText = tagVal;
             name.appendChild(tag);
         }
 
         const district = document.createElement("div");
         district.className = "district";
-        district.innerText = row.District;
+        district.innerText = districtVal;
 
         info.appendChild(name);
         info.appendChild(district);
 
         const btn = document.createElement("a");
         btn.className = "btn";
-        btn.href = row.Facebook;
+        btn.href = fbVal || "#";
         btn.target = "_blank";
         btn.innerText = "Facebook";
 
@@ -171,10 +179,11 @@ function render(data) {
     });
 }
 
-// Load CSV
+// Load CSV from your hosted link
 Papa.parse("https://lla9fb.vercel.app/lla9.csv", {
     download: true,
     header: true,
+    skipEmptyLines: true,
     complete: function(results) {
         allData = results.data;
         render(allData);
@@ -185,10 +194,14 @@ Papa.parse("https://lla9fb.vercel.app/lla9.csv", {
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase();
 
-    const filtered = allData.filter(row =>
-        (row.Name && row.Name.toLowerCase().includes(value)) ||
-        (row.District && row.District.toLowerCase().includes(value))
-    );
+    const filtered = allData.filter(row => {
+        row = normalize(row);
+
+        return (
+            (row.name && row.name.toLowerCase().includes(value)) ||
+            (row.district && row.district.toLowerCase().includes(value))
+        );
+    });
 
     render(filtered);
 });
