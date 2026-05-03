@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precedenters LLA 9th</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #f5f6fa;
+}
+
+/* Sticky Header */
+.header {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    z-index: 100;
+    text-align: center;
+}
+
+.title {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* Search Box */
+.search-box {
+    margin-top: 10px;
+}
+
+.search-box input {
+    width: 95%;
+    max-width: 400px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* Cards */
+.container {
+    padding: 10px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+}
+
+.name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.district {
+    font-size: 12px;
+    color: gray;
+}
+
+/* Tag */
+.tag {
+    display: inline-block;
+    background: #2ecc71;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    margin-left: 5px;
+}
+
+/* Button */
+.btn {
+    background: #1877f2;
+    color: white;
+    padding: 8px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+/* Mobile optimization */
+@media (max-width: 500px) {
+    .name {
+        font-size: 14px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="title">
+        Precedenters<br>
+        LLA 9th, JnU 20th.
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="search" placeholder="Search by name or district...">
+    </div>
+</div>
+
+<div class="container" id="list"></div>
+
+<!-- PapaParse -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+
+<script>
+let allData = [];
+
+function render(data) {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    data.forEach(row => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const info = document.createElement("div");
+        info.className = "info";
+
+        const name = document.createElement("div");
+        name.className = "name";
+
+        name.innerHTML = row.Name;
+
+        // Tag
+        if (row.Tag && row.Tag.trim() !== "") {
+            const tag = document.createElement("span");
+            tag.className = "tag";
+            tag.innerText = row.Tag;
+            name.appendChild(tag);
+        }
+
+        const district = document.createElement("div");
+        district.className = "district";
+        district.innerText = row.District;
+
+        info.appendChild(name);
+        info.appendChild(district);
+
+        const btn = document.createElement("a");
+        btn.className = "btn";
+        btn.href = row.Facebook;
+        btn.target = "_blank";
+        btn.innerText = "Facebook";
+
+        card.appendChild(info);
+        card.appendChild(btn);
+
+        list.appendChild(card);
+    });
+}
+
+// Load CSV
+Papa.parse("lla9.csv", {
+    download: true,
+    header: true,
+    complete: function(results) {
+        allData = results.data;
+        render(allData);
+    }
+});
+
+// Search
+document.getElementById("search").addEventListener("input", function() {
+    const value = this.value.toLowerCase();
+
+    const filtered = allData.filter(row =>
+        (row.Name && row.Name.toLowerCase().includes(value)) ||
+        (row.District && row.District.toLowerCase().includes(value))
+    );
+
+    render(filtered);
+});
+</script>
+
+</body>
+</html>
